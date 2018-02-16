@@ -12,8 +12,10 @@
 #include <stdlib.h>
  
 /* Headers: */
+#include "SList.h"
  
 int main(int argc, char* argv[])
 {
+	SList<int>* list = new SList<int>(new SListNode<int>(NULL, new int(1)), 1);
 	return EXIT_SUCCESS;
 }
