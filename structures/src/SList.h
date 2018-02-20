@@ -12,6 +12,7 @@
 /* Libraries: */
 #include <iostream>
 #include <fstream>
+#include <string>
 
 /* Headers: */
 
@@ -31,22 +32,26 @@ public:
 	~SListNode();
 
 	/* Getters */
-	SListNode* getNext() { return _next }; //returns pointer to next object 
-	T* getData() { return _data }; //returns pointer to object of T type
+	SListNode* getNext() { return _next; }; //returns pointer to next object 
+	T* getData() { return _data; }; //returns pointer to object of T type
 
 	/* Setters */
-	void setNext(SListNode<T>* node) { _next = node }; //sets pointer to next SListNode
+	void setNext(SListNode<T>* node) { _next = node; }; //sets pointer to next SListNode
 	void setData(T* data) { _data = data }; //sets pointer to object of T* type
 
 	/* Other Methods */
-	friend std::ostream& operator << (std::ostream& o, SListNode& n);
+	friend std::ostream& operator << (std::ostream& o, SListNode<T>& n)
+	{
+		o << *n->getData() << std::endl;
+		return o;
+	}
 };
 
 template<typename T>
 class SList
 {
 private:
-	SListNode* _head;
+	SListNode<T>* _head;
 	int _numNodes;
 
 public:
@@ -55,15 +60,30 @@ public:
 	~SList();
 
 	/* Getters */
-	SListNode* getHead() { return _head };
-	int getNumNodes() { return _numNodes };
+	SListNode<T>* getHead() { return _head; };
+	int getNumNodes() { return _numNodes; };
+
+	/* Setters */
+	void setHead(SListNode<T>* node) { this->_head = node; };
+	void setNumNodes(int num) { this->_numNodes = num; };
+	void incNumNodes() { _numNodes += 1; };
+	void decNumNodes() { _numNodes -= 1; };
 
 	/* Other methods*/
-	bool insertBefore(SListNode* node);
-	bool insertAfter(SListNode* node);
-	bool deleteNode(SListNode* node);
+	bool insertBefore(SListNode<T>* node, SListNode<T>* newNode);
+	bool insertAfter(SListNode<T>* node, SListNode<T>* newNode);
+	bool deleteNode(SListNode<T>* node);
 	bool sort(/* add ability to sort based on function pointer */);
-	friend std::ostream& operator << (std::ostream& o, SList& l);
+	friend std::ostream& operator << (std::ostream& o, SList<T>& l)
+	{
+		SListNode<T>* temp = l.getHead();
+		while (temp != NULL)
+		{
+			o << *temp->getData() << std::endl;
+			temp = temp->getNext();
+		}
+		return o;
+	}
 };
 
 /***********************************************************************************************/
@@ -72,7 +92,7 @@ public:
 /* Default Constructor SList */
 template<typename T>
 SList<T>::SList(SListNode<T>* head = NULL, int num = 0)
-	:_head(head), numNodes(num)
+	:_head(head), _numNodes(num)
 {
 }
 
@@ -80,18 +100,18 @@ SList<T>::SList(SListNode<T>* head = NULL, int num = 0)
 template<typename T>
 SList<T>::~SList()
 {
-	SListNode* temp = _head;
+	SListNode<T>* temp = this->getHead();
 	while (temp != NULL)
 	{
-		_head = temp->getNext();
+		this->setHead(temp->getNext());
 		delete temp;
-		temp = _head;
+		temp = this->getHead();
 	}
 }
 
 /* Default Constructor SListNode */
 template<typename T>
-SListNode<T>::SListNode(SListNode* next = NULL, T* data = NULL)
+SListNode<T>::SListNode(SListNode<T>* next = NULL, T* data = NULL)
 	:_next(next), _data(data)
 {
 }
@@ -109,31 +129,121 @@ SListNode<T>::~SListNode()
 
 /* Insert Before */
 template<typename T>
-bool SList<T>::insertBefore(SListNode* node, SListNode* newNode)
+bool SList<T>::insertBefore(SListNode<T>* node, SListNode<T>* newNode)
 {
-	// add code for inserting a new node before passed node
+	/* Empty node */
+	if (newNode == NULL)
+	{
+		std::cout << "Cannot insert empty node into list" << std::endl;
+		return false;
+	}
+
+	/* Empty list */
+	else if (this->getHead() == NULL)
+	{
+		this->setHead(newNode);
+		this->setNumNodes(1);
+		return true;
+	}
+
+	/* In front of head node */
+	else if (node == this->getHead())
+	{
+		newNode->setNext(this->getHead());
+		this->setHead(newNode);
+		this->incNumNodes();
+		return true;
+	}
+
+	/* Assumes NULL is end of list */
+	else
+	{
+		SListNode<T>* temp = this->getHead();
+		while (temp->getNext() != node)
+			temp = temp->getNext();
+
+		newNode->setNext(node);
+		temp->setNext(newNode);
+		this->incNumNodes();
+		return true;
+	}
 }
 
 template<typename T>
-bool SList<T>::insertAfter(SListNode* node, SListNode* newNode)
+bool SList<T>::insertAfter(SListNode<T>* node, SListNode<T>* newNode)
 {
-	// add code for inserting a new node after passed node
-}
-
-template<T>
-std::ostream& SListNode<T>::operator << (std::ostream& o, SListNode& n)
-{
-	std::cout << _data;
-}
-
-template<T>
-std::ostream& SList<T>::operator << (std::ostream& o, SList& l)
-{
-	SListNode* temp = l.getHead();
-	while (temp != NULL)
+		/* Empty node */
+	if (newNode == NULL)
 	{
-		std::cout << temp << std::endl;
-		temp = temp->getNext();
+		std::cout << "Cannot insert empty node into list" << std::endl;
+		return false;
+	}
+
+	/* Empty list */
+	else if (this->getHead() == NULL)
+	{
+		this->setHead(newNode);
+		this->setNumNodes(1);
+		return true;
+	}
+
+	/* After last node */
+	else if (node == NULL)
+	{
+		SListNode<T>* temp = this->getHead();
+		while (temp->getNext() != NULL)
+			temp = temp->getNext();
+
+		newNode->setNext(NULL);
+		temp->setNext(newNode);
+		this->incNumNodes();
+		return true;
+	}
+
+	else
+	{
+		newNode->setNext(node->getNext());
+		node->setNext(newNode);
+		this->incNumNodes();
+		return true;
+	}
+}
+
+template<typename T>
+bool SList<T>::deleteNode(SListNode<T>* node)
+{
+	/* Empty list */
+	if (this->getHead() == NULL)
+	{
+		std::cout << "List is empty.  No nodes to delete" << std::endl;
+		return false;
+	}
+
+	/* Null Node */
+	else if (node == NULL)
+	{
+		std::cout << "Cannot Delete NULL node" << std::endl;
+		return false;
+	}
+
+	/* Head Node */
+	else if (this->getHead() == node)
+	{
+		this->setHead(node->getNext());
+		delete node;
+		return true;
+	}
+
+	/* All other nodes (including last node) */
+	else
+	{
+		SListNode<T>* temp = this->getHead();
+		while (temp->getNext() != node)
+			temp = temp->getNext();
+
+		temp->setNext(NULL);
+		delete node;
+		return true;
 	}
 }
 
