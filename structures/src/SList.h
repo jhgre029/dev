@@ -42,7 +42,10 @@ public:
 	/* Other Methods */
 	friend std::ostream& operator << (std::ostream& o, SListNode<T>& n)
 	{
-		o << *n->getData() << std::endl;
+		if (&n != NULL)
+			o << *n.getData() << std::endl;
+		else
+			o << "CANNOT OUTPUT NULL NODE" << std::endl;
 		return o;
 	}
 };
@@ -52,19 +55,22 @@ class SList
 {
 private:
 	SListNode<T>* _head;
+	SListNode<T>* _tail;
 	int _numNodes;
 
 public:
 	/* Constructors and Destructors */
-	SList(SListNode<T>* head = NULL, int num = 0);
+	SList(SListNode<T>* head = NULL, SListNode<T>* tail = NULL, int num = 0);
 	~SList();
 
 	/* Getters */
 	SListNode<T>* getHead() { return _head; };
+	SListNode<T>* getTail() { return _tail; };
 	int getNumNodes() { return _numNodes; };
 
 	/* Setters */
 	void setHead(SListNode<T>* node) { this->_head = node; };
+	void setTail(SListNode<T>* node) { this->_tail = node; };
 	void setNumNodes(int num) { this->_numNodes = num; };
 	void incNumNodes() { _numNodes += 1; };
 	void decNumNodes() { _numNodes -= 1; };
@@ -73,14 +79,22 @@ public:
 	bool insertBefore(SListNode<T>* node, SListNode<T>* newNode);
 	bool insertAfter(SListNode<T>* node, SListNode<T>* newNode);
 	bool deleteNode(SListNode<T>* node);
-	bool sort(/* add ability to sort based on function pointer */);
+	bool sort();
 	friend std::ostream& operator << (std::ostream& o, SList<T>& l)
 	{
-		SListNode<T>* temp = l.getHead();
-		while (temp != NULL)
+		if (&l != NULL)
 		{
-			o << *temp->getData() << std::endl;
-			temp = temp->getNext();
+			SListNode<T>* temp = l.getHead();
+			while (temp != NULL)
+			{
+				o << *temp->getData() << std::endl;
+				temp = temp->getNext();
+			}
+		}
+
+		else
+		{
+			o << "CANNOT OUTPUT NULL LIST" << std::endl;
 		}
 		return o;
 	}
@@ -91,8 +105,8 @@ public:
 /***********************************************************************************************/
 /* Default Constructor SList */
 template<typename T>
-SList<T>::SList(SListNode<T>* head = NULL, int num = 0)
-	:_head(head), _numNodes(num)
+SList<T>::SList(SListNode<T>* head = NULL, SListNode<T>* tail = NULL, int num = 0)
+	:_head(head), _tail(tail), _numNodes(num)
 {
 }
 
@@ -131,10 +145,15 @@ SListNode<T>::~SListNode()
 template<typename T>
 bool SList<T>::insertBefore(SListNode<T>* node, SListNode<T>* newNode)
 {
-	/* Empty node */
-	if (newNode == NULL)
+	if (this == NULL)
 	{
-		std::cout << "Cannot insert empty node into list" << std::endl;
+		std::cout << "CANNOT INSERT NODE INTO UNITIALIZED LIST" << std::endl;
+		return false;
+	}
+	/* Empty node */
+	else if (newNode == NULL)
+	{
+		std::cout << "CANNOT INSERT EMPTY NODE INTO LIST" << std::endl;
 		return false;
 	}
 
@@ -142,6 +161,7 @@ bool SList<T>::insertBefore(SListNode<T>* node, SListNode<T>* newNode)
 	else if (this->getHead() == NULL)
 	{
 		this->setHead(newNode);
+		this->setTail(newNode);
 		this->setNumNodes(1);
 		return true;
 	}
@@ -172,10 +192,17 @@ bool SList<T>::insertBefore(SListNode<T>* node, SListNode<T>* newNode)
 template<typename T>
 bool SList<T>::insertAfter(SListNode<T>* node, SListNode<T>* newNode)
 {
-		/* Empty node */
-	if (newNode == NULL)
+	/* unitialized list */
+	if (this == NULL)
 	{
-		std::cout << "Cannot insert empty node into list" << std::endl;
+		std::cout << "CANNOT INSERT NODE INTO AN UNITIALIZED LIST" << std::endl;
+		return false;
+	}
+
+	/* Empty node */
+	else if (newNode == NULL)
+	{
+		std::cout << "CANNOT INSERT EMPTY NODE INTO LIST" << std::endl;
 		return false;
 	}
 
@@ -183,19 +210,17 @@ bool SList<T>::insertAfter(SListNode<T>* node, SListNode<T>* newNode)
 	else if (this->getHead() == NULL)
 	{
 		this->setHead(newNode);
+		this->setTail(newNode);
 		this->setNumNodes(1);
 		return true;
 	}
 
 	/* After last node */
-	else if (node == NULL)
+	else if (node == this->getTail())
 	{
-		SListNode<T>* temp = this->getHead();
-		while (temp->getNext() != NULL)
-			temp = temp->getNext();
-
 		newNode->setNext(NULL);
-		temp->setNext(newNode);
+		this->getTail()->setNext(newNode);
+		this->setTail(newNode);
 		this->incNumNodes();
 		return true;
 	}
@@ -212,17 +237,23 @@ bool SList<T>::insertAfter(SListNode<T>* node, SListNode<T>* newNode)
 template<typename T>
 bool SList<T>::deleteNode(SListNode<T>* node)
 {
+	/* unitialized list */
+	if (this == NULL)
+	{
+		std::cout << "CANNOT DELETE NODE FROM UNITIALIZED LIST" << std::endl;
+		return false;
+	}
 	/* Empty list */
 	if (this->getHead() == NULL)
 	{
-		std::cout << "List is empty.  No nodes to delete" << std::endl;
+		std::cout << "LIST IS EMPTY.  NO NODES TO DELETE" << std::endl;
 		return false;
 	}
 
 	/* Null Node */
 	else if (node == NULL)
 	{
-		std::cout << "Cannot Delete NULL node" << std::endl;
+		std::cout << "CANNOT DELETE NULL NODE" << std::endl;
 		return false;
 	}
 
@@ -231,7 +262,20 @@ bool SList<T>::deleteNode(SListNode<T>* node)
 	{
 		this->setHead(node->getNext());
 		delete node;
+		this->decNumNodes();
 		return true;
+	}
+
+	/* Tail Node */
+	else if (this->getTail() == node)
+	{
+		SListNode<T>* temp = this->getHead();
+		while (temp->getNext() != this->getTail())
+			temp = temp->getNext();
+		temp->setNext(NULL);
+		this->setTail(temp);
+		delete node;
+		this->decNumNodes();
 	}
 
 	/* All other nodes (including last node) */
@@ -241,10 +285,17 @@ bool SList<T>::deleteNode(SListNode<T>* node)
 		while (temp->getNext() != node)
 			temp = temp->getNext();
 
-		temp->setNext(NULL);
+		temp->setNext(node->getNext());
 		delete node;
+		this->decNumNodes();
 		return true;
 	}
+}
+
+template<typename T>
+bool SList<T>::sort()
+{
+	/* figure out how to sort this bitch */
 }
 
 #endif//SLIST_H
