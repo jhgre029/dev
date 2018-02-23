@@ -17,7 +17,7 @@
 /* Headers: */
 
 /***********************************************************************************************/
-/* CLASS DEFINITIONS */
+/* SListNode Class Definition */
 /***********************************************************************************************/
 template<typename T>
 class SListNode
@@ -40,16 +40,29 @@ public:
 	void setData(T* data) { _data = data }; //sets pointer to object of T* type
 
 	/* Other Methods */
-	friend std::ostream& operator << (std::ostream& o, SListNode<T>& n)
+	friend std::ostream& operator << (std::ostream& o, SListNode<T>& n) //handles output to file or standard cout
 	{
 		if (&n != NULL)
 			o << *n.getData() << std::endl;
 		else
-			o << "CANNOT OUTPUT NULL NODE" << std::endl;
+			std::cout << "CANNOT OUTPUT NULL NODE" << std::endl;
 		return o;
+	}
+
+	friend std::istream& operator >>  (std::istream& i, SListNode<T>& n)
+	{
+		T* data = new T;
+		if (&n != NULL)
+			i >> data;
+		else
+			std::cout << "CANNOT OUTPUT TO NULL DATA POINTER" << std::endl;
+		return i;
 	}
 };
 
+/***********************************************************************************************/
+/* SList Class Definition */
+/***********************************************************************************************/
 template<typename T>
 class SList
 {
@@ -79,7 +92,9 @@ public:
 	bool insertBefore(SListNode<T>* node, SListNode<T>* newNode);
 	bool insertAfter(SListNode<T>* node, SListNode<T>* newNode);
 	bool deleteNode(SListNode<T>* node);
-	bool sort();
+	template<typename func> void qSort(SListNode<T>* start, SListNode<T>* end, func sortData);
+	template<typename func> SListNode<T>* partition(SListNode<T>* start, SListNode<T>* end, func sortData);
+	void swap(SListNode<T>* a, SListNode<T>* b);
 	friend std::ostream& operator << (std::ostream& o, SList<T>& l)
 	{
 		if (&l != NULL)
@@ -101,7 +116,7 @@ public:
 };
 
 /***********************************************************************************************/
-/* CONSTRUCTORS AND DESCRUCTORS */
+/* CONSTRUCTORS AND DESCRUCTORS FOR SLIST */
 /***********************************************************************************************/
 /* Default Constructor SList */
 template<typename T>
@@ -123,6 +138,9 @@ SList<T>::~SList()
 	}
 }
 
+/***********************************************************************************************/
+/* CONSTRUCTORS AND DESTRUCTORS FOR SLISTNODE */
+/***********************************************************************************************/
 /* Default Constructor SListNode */
 template<typename T>
 SListNode<T>::SListNode(SListNode<T>* next = NULL, T* data = NULL)
@@ -140,7 +158,9 @@ SListNode<T>::~SListNode()
 /***********************************************************************************************/
 /* OTHER METHODS */
 /***********************************************************************************************/
-
+/***********************************************************************************************/
+/* INSERTIONS */
+/***********************************************************************************************/
 /* Insert Before */
 template<typename T>
 bool SList<T>::insertBefore(SListNode<T>* node, SListNode<T>* newNode)
@@ -234,6 +254,9 @@ bool SList<T>::insertAfter(SListNode<T>* node, SListNode<T>* newNode)
 	}
 }
 
+/***********************************************************************************************/
+/* REMOVALS */
+/***********************************************************************************************/
 template<typename T>
 bool SList<T>::deleteNode(SListNode<T>* node)
 {
@@ -292,10 +315,105 @@ bool SList<T>::deleteNode(SListNode<T>* node)
 	}
 }
 
+/***********************************************************************************************/
+/* SORTING */
+/***********************************************************************************************/
 template<typename T>
-bool SList<T>::sort()
+template<typename func>void SList<T>::qSort(SListNode<T>* start, SListNode<T>* end, func sortData = NULL)
 {
-	/* figure out how to sort this bitch */
+	if (this == NULL || start == NULL || end == NULL)
+	{
+		std::cout << "PASSED DATA (QSORT) IS INVALID" << std::endl;
+		return;
+	}
+
+	else if (sortData != NULL)
+	{
+		if (end->getNext() == start || end == start)
+		{
+			return;
+		}
+
+		else
+		{
+			SListNode<T>* fulc = partition(start, end, sortData);
+			SListNode<T>* pFulc = start;
+			while (pFulc->getNext() != fulc)
+				pFulc = pFulc->getNext();
+			qSort(start, pFulc, sortData);
+			qSort(fulc->getData, end, sortData);
+		}
+	}
+
+	else
+	{
+		if (end->getNext() == start || end == start)
+		{
+			return;
+		}
+
+		else
+		{
+			SListNode<T>* fulc = partition(start, end);
+			SListNode<T>* pFulc = start;
+			while (pFulc->getNext() != fulc)
+				pFulc = pFulc->getNext();
+			qSort(start, pFulc);
+			qSort(fulc->getData, end);
+		}
+	}
+}
+
+template<typename T>
+template<typename func>SListNode<T>* SList<T>::partition(SListNode<T>* start, SListNode<T>* end, func sortData = NULL)
+{
+	if (sortData != NULL)
+	{
+
+	}
+
+	else
+	{
+
+	}
+}
+template<typename T>
+void SList<T>::swap(SListNode<T>* a, SListNode<T>* b)
+{
+	if (this == NULL || a == NULL || b == NULL)
+	{
+		std::cout << "CANNOT SWAP NULL DATA" << std::endl;
+		return;
+	}
+
+	else
+	{
+		SListNode<T>* first = this->getHead();
+		SListNode<T>* second == a;
+		while (first != NULL && second != NULL)
+		{
+			if (first->getNext() == b)
+			{
+				std::cout << "NODE A CANNOT COME AFTER NODE B" << std::endl;
+				return;
+			}
+
+			if (first->getNext() != a)
+				first = first->getNext();
+
+			if (second->getNext() != b)
+				second = second->getNext();
+		}
+
+		if (first == NULL || second == NULL)
+			return; //could not find nodes in list
+
+		first->setNext(b);
+		second->setNext(a);
+		second = a->getNext();
+		a->setNext(b->getNext());
+		b->setNext(second);
+	}
 }
 
 #endif//SLIST_H
