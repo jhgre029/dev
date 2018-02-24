@@ -369,12 +369,38 @@ template<typename func>SListNode<T>* SList<T>::partition(SListNode<T>* start, SL
 {
 	if (sortData != NULL)
 	{
+		SListNode<T>* fulc = end;
+		SListNode<T>* iter = start;
+		SListNode<T>* hold = start;
 
+		while (iter->getNext() != fulc)
+		{
+			if (iter->getData()->sortData() < fulc->getData()->sortData() && iter != hold)
+			{
+				swap(hold, iter);
+				hold = hold->getNext();
+			}
+			iter = iter->getNext();
+		}
+		swap(hold->getNext(), fulc);
 	}
 
 	else
 	{
+		SListNode<T>* fulc = end;
+		SListNode<T>* iter = start;
+		SListNode<T>* hold = start;
 
+		while (iter->getNext() != fulc)
+		{
+			if (iter->getData() < fulc->getData() && iter != hold)
+			{
+				swap(hold, iter);
+				hold = hold->getNext();
+			}
+			iter = iter->getNext();
+		}
+		swap(hold->getNext(), fulc);
 	}
 }
 template<typename T>
@@ -384,6 +410,11 @@ void SList<T>::swap(SListNode<T>* a, SListNode<T>* b)
 	{
 		std::cout << "CANNOT SWAP NULL DATA" << std::endl;
 		return;
+	}
+
+	else if (a == b)
+	{
+		std::cout << "CANNOT SWAP SAME NODE" << std::endl;
 	}
 
 	else
