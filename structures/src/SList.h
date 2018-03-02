@@ -341,7 +341,7 @@ template<typename func>void SList<T>::qSort(SListNode<T>* start, SListNode<T>* e
 			while (pFulc->getNext() != fulc)
 				pFulc = pFulc->getNext();
 			qSort(start, pFulc, sortData);
-			qSort(fulc->getData, end, sortData);
+			qSort(pFulc, end, sortData);
 		}
 	}
 
@@ -354,12 +354,12 @@ template<typename func>void SList<T>::qSort(SListNode<T>* start, SListNode<T>* e
 
 		else
 		{
-			SListNode<T>* fulc = partition(start, end);
+			SListNode<T>* fulc = partition(start, end, NULL);
 			SListNode<T>* pFulc = start;
 			while (pFulc->getNext() != fulc)
 				pFulc = pFulc->getNext();
-			qSort(start, pFulc);
-			qSort(fulc->getData, end);
+			qSort(start, pFulc, NULL);
+			qSort(pFulc, end, NULL);
 		}
 	}
 }
